@@ -1,0 +1,514 @@
+{
+  "name": "Personal_Chat_Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "type": "@mentoster/n8n-nodes-telegram-polling.telegramPollingTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        32
+      ],
+      "id": "66184f61-421e-4851-b119-6925a8b1cf65",
+      "name": "Telegram Trigger1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "be4ab3f5-fb32-4972-b257-eeb36897deaf",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/news",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bc539b22-67a9-4fff-a04d-2de80427b8fc",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/hi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        16
+      ],
+      "id": "ebfcc740-c0d8-49b8-9679-24b0bf657d43",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1e36ffe6-897f-4b87-83ac-14d2da3816a8",
+              "leftValue": "={{ $json.message.entities[0].type }}",
+              "rightValue": "bot_command",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        32
+      ],
+      "id": "239b3c7c-c772-449a-97f6-27f4d7bd071e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { url: \"https://openai.com/blog/rss.xml\" } },\n  { json: { url: \"https://deepmind.google/blog/rss.xml\" } },\n  { json: { url: \"https://www.microsoft.com/en-us/research/feed/\" } },\n  { json: { url: \"https://huggingface.co/blog/feed.xml\" } },\n  { json: { url: \"https://machinelearningmastery.com/feed/\" } },\n  { json: { url: \"https://bair.berkeley.edu/blog/feed.xml\" } },\n  { json: { url: \"https://blogs.nvidia.com/feed/\" } },\n  { json: { url: \"https://aws.amazon.com/blogs/machine-learning/feed/\" } },\n  { json: { url: \"https://techcrunch.com/category/artificial-intelligence/feed/\" } },\n  { json: { url: \"https://www.theverge.com/rss/index.xml\" } },\n  { json: { url: \"https://www.wired.com/feed/rss\" } },\n  { json: { url: \"https://venturebeat.com/category/ai/feed/\" } },\n  { json: { url: \"https://www.technologyreview.com/topic/artificial-intelligence/feed/\" } },\n  { json: { url: \"https://www.marktechpost.com/feed/\" } },\n  { json: { url: \"https://towardsdatascience.com/feed\" } },\n  { json: { url: \"https://www.kdnuggets.com/feed\" } },\n  { json: { url: \"https://www.artificialintelligence-news.com/feed/\" } },\n  { json: { url: \"https://www.bleepingcomputer.com/feed/\" } },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "abdd9dd2-2228-4cbd-bddf-374e7782e514",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        0
+      ],
+      "id": "24cfc1f8-9a0e-4057-9294-9aabbc85d7fd",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "818d5370-554e-4c90-a364-4f202c1ae427",
+              "leftValue": "={{ $json.pubDate }}",
+              "rightValue": "={{ $today.minus({days: 1}) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        0
+      ],
+      "id": "aa448469-ecb2-4f0e-b29f-dd6ab2d7f702",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "model": "rafw007/gemma4-e4b-claude-coder:latest",
+        "options": {
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        224
+      ],
+      "id": "46aeaf7b-d08d-4a11-912c-23782d843590",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "681c0029-d3b0-4e45-b53c-8c85021b349a",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the AI's string response into a real JSON object\n    const aiData = JSON.parse(item.json.output);\n    \n    // 2. Extract the specific fields and attach them directly to the n8n item\n    results.push({\n      json: {\n        category: aiData.category,\n        summary: aiData.summary,\n        key_points: aiData.key_points,\n        importance_score: aiData.importance_score,\n        \n        // It is highly recommended to keep the original title and link \n        // so you don't lose them for the next steps!\n        title: item.json.title,\n        link: item.json.link\n      }\n    });\n\n  } catch (error) {\n    // 3. Fallback: If the AI hallucinates bad JSON, catch the error \n    // so the node doesn't crash for the rest of the good articles.\n    results.push({\n      json: {\n        error: \"Failed to parse AI output\",\n        details: error.message,\n        raw_output: item.json.output\n      }\n    });\n  }\n}\n\n// 4. Return the new list of neatly separated items\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        0
+      ],
+      "id": "06175f22-2269-4e5b-98a5-20915192c0e9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "importance_score",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        0
+      ],
+      "id": "f3fd6ef2-2d4c-477d-8b22-101bc2f7616c",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "text": "=<b>Summary:</b>\n{{ $json.summary }}\n\n<b>Key Points:</b>\n{{ $json.key_points.join('\\n• ') }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2368,
+        0
+      ],
+      "id": "41e6512c-b47d-4576-a4aa-c68e858c66e1",
+      "name": "Send a text message",
+      "webhookId": "48d00e02-f457-4fb1-9ff5-fbcec124dd9a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title: {{ $json.title }}\nContent: {{ $json.content }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are a twitter post expert and you post twitter posts regarding AI related news. Read all the received news and generate very interesting twitter post via creatively crafting below data.\n\n## Output format\n- \"summary\": A dense 2-3 sentence summary.\n- \"key_points\": A bulleted list of actionable takeaways (e.g., commands, tools, specs).\n- \"importance_score\": An integer from 1 to 10 based on industry impact."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "37be8fb6-d9be-4664-bbb8-aa1aa7401efe",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "rafw007/gemma4-e4b-claude-coder:latest",
+        "options": {
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        496,
+        448
+      ],
+      "id": "40ce21c1-9c46-4418-a27a-66e3adfbcdea",
+      "name": "Ollama Chat Model1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are a friendly standup comedian. You provide response to every user message in funny way. You add jokes, punch lines and roast your self or other just for the sake of fun and laugh.\n\n# Instructions\n1. Keep the response very short, cool and funny.\n2. Don't think too much, just respond with whatever comes in your mind first.\n3. Respond in json format with key name as \"response\" and value as your response."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        224
+      ],
+      "id": "18787fde-72fa-483a-961c-e0b6596fcb55",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\ntry {\n  // 1. Parse the AI's string response into a real JSON object\n  const aiData = JSON.parse($input.first().json.output);\n  \n  // 2. Extract the specific fields and attach them directly to the n8n item\n  results.push({\n    json: {\n      Joker: aiData.response\n    }\n  });\n\n} catch (error) {\n  // 3. Fallback: If the AI hallucinates bad JSON, catch the error \n  // so the node doesn't crash for the rest of the good articles.\n  results.push({\n    json: {\n      error: \"Failed to parse AI output\",\n      details: error.message\n    }\n  });\n}\n\n// 4. Return the new list of neatly separated items\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        224
+      ],
+      "id": "09c645d1-d085-4eb9-a5cf-8ba45a3ef36a",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.Joker }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        224
+      ],
+      "id": "f3fa113c-52a2-46be-aff0-094d4bdaf1f3",
+      "name": "Send a text message1",
+      "webhookId": "48d00e02-f457-4fb1-9ff5-fbcec124dd9a"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8c2859e1-7ec3-4e20-b46a-a73d73e40eeb",
+  "meta": {
+    "instanceId": "d254b8dd4fc674c466a7cd6a79a8a61b8872700d39c8d947dd838d8cef678417"
+  },
+  "nodeGroups": [],
+  "id": "JJUjnStzV4FZ5vqH",
+  "tags": []
+}

@@ -1,0 +1,460 @@
+{
+  "name": "Website status workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        256
+      ],
+      "id": "587d8c3b-ff65-4f3c-ad22-167e4d6472fd",
+      "name": "When chat message received",
+      "webhookId": "c17b798f-6644-4506-aca2-395c4369844e"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an IT administrator, your job is to check if the python server website is up or down. If the check website status via code tool indicates the server is down or timed out, set the 'timeout' field to true. If the server is up, set it to false. If website is down then run \"nohup python3 -m uploadserver 8080 --bind 0.0.0.0 > /dev/null 2>&1 &\" command using SSH Tool to start the python server website."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        256
+      ],
+      "id": "572b281f-845e-43e3-b869-0e229b026490",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        448,
+        512
+      ],
+      "id": "0012c0c8-6817-4ca7-9c17-969e6979573f",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.ChatId }}",
+        "contextWindowLength": 1000000
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        608,
+        512
+      ],
+      "id": "e038870e-606c-4d7c-9def-bc4bbb9f86ad",
+      "name": "Simple Memory",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "description": "Checks if the python3 serer website at 192.168.1.5:8080 is up or down.",
+        "jsCode": "try {\n  // We use n8n's built-in request helper with a 5-second timeout\n  const response = await this.helpers.httpRequest({\n    url: 'http://192.168.1.5:8080',\n    method: 'GET',\n    timeout: 5000 \n  });\n  \n  return \"The website is up and running.\";\n\n} catch (error) {\n  // If the server is down (ECONNREFUSED or Timeout), it falls here instead of crashing\n  return \"The website is down. The connection was refused or timed out.\";\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        512
+      ],
+      "id": "1f7db254-1bbe-4158-866d-627f2ff3e860",
+      "name": "Check website status via code"
+    },
+    {
+      "parameters": {
+        "description": "Call website status check tool subflow.",
+        "source": "parameter",
+        "workflowJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {},\n      \"id\": \"e45a12cd-8b9a-4c22-b5df-1e8c2a9d8e7b\",\n      \"name\": \"Execute Workflow Trigger\",\n      \"type\": \"n8n-nodes-base.executeWorkflowTrigger\",\n      \"typeVersion\": 1,\n      \"position\": [\n        460,\n        460\n      ]\n    },\n    {\n      \"parameters\": {\n        \"jsCode\": \"try {\\n  // Try to connect with a strict 3-second timeout\\n  await this.helpers.httpRequest({\\n    method: 'GET',\\n    url: 'http://192.168.1.5:8080',\\n    timeout: 3000\\n  });\\n  \\n  // If it connects successfully, return this clean JSON\\n  return [{ json: { status: \\\"The website is up and running successfully.\\\" } }];\\n\\n} catch (error) {\\n  // If the server is down, it instantly catches the error and returns this clean JSON\\n  return [{ json: { status: \\\"The website is down. The server is offline or the connection was refused.\\\" } }];\\n}\"\n      },\n      \"id\": \"f8a9b2c1-d3e4-4f56-a7b8-9c0d1e2f3a4b\",\n      \"name\": \"Check website status via subflow\",\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [\n        680,\n        460\n      ]\n    }\n  ],\n  \"connections\": {\n    \"Execute Workflow Trigger\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Check website status via subflow\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        512
+      ],
+      "id": "4373c7c9-b5f2-494f-8cf6-5f1783e2408d",
+      "name": "Check website status via subflow",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "iv8xtuSLaibOpnKL",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/iv8xtuSLaibOpnKL",
+          "cachedResultName": "SSH_server"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Command": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Command', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Command"
+          ],
+          "schema": [
+            {
+              "id": "Command",
+              "displayName": "Command",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        512
+      ],
+      "id": "33ca163c-eb86-49b2-9d71-6c0a153105a0",
+      "name": "SSH Tool"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        464
+      ],
+      "id": "35b7751a-33b6-480e-9fcd-23a95b408c3f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "36f4a03b-5b13-452c-aefd-b902a8df192c",
+              "name": "Prompt",
+              "value": "Check website status via code",
+              "type": "string"
+            },
+            {
+              "id": "302be2ee-81e5-4807-ba19-bf9fad6b8fd8",
+              "name": "ChatId",
+              "value": "Fox12345",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        464
+      ],
+      "id": "7ad15618-151b-4c9d-b6e4-86ba8abd3d40",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        240
+      ],
+      "id": "201dc9ad-b134-46d8-8b75-3c3a9a53e609",
+      "name": "Send a text message",
+      "webhookId": "544f52a9-e5d6-4f69-a542-77d74a7e50e4"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"timeout\": {\n      \"type\": \"boolean\",\n      \"description\": \"Set to true ONLY if the website is down, refused connection, or timed out. Set to false if the website is up.\"\n    },\n    \"text\": {\n      \"type\": \"string\",\n      \"description\": \"A friendly message explaining the status.\"\n    }\n  },\n  \"required\": [\n    \"timeout\",\n    \"text\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        512
+      ],
+      "id": "42ad99f7-4aea-486b-ad89-dcda94422175",
+      "name": "Structured Output Parser",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b606d26d-f065-4f4e-b5ae-dacd9e570043",
+              "leftValue": "={{ $json.output.timeout }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        256
+      ],
+      "id": "58060863-8bfe-4036-8e45-6c4b24cbd46d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "89c33e0d-24bf-422d-89c4-3f5beb195bda",
+      "name": "Send a text message1",
+      "webhookId": "40b25f03-f989-4d59-9dd6-2850e41da7e1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a8a21ca7-b449-49ce-b06d-b273870ed47f",
+              "leftValue": "Command approved",
+              "rightValue": "True",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        16
+      ],
+      "id": "683ac97e-5034-43ad-b57b-ff8524c6e3f1",
+      "name": "If1",
+      "disabled": true
+    }
+  ],
+  "pinData": {
+    "Edit Fields": [
+      {
+        "json": {
+          "Prompt": "Check website status via code",
+          "ChatId": "Fox12345"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check website status via code": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check website status via subflow": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c20137c8-2c39-4181-b62a-9c5865541bbe",
+  "meta": {
+    "instanceId": "d254b8dd4fc674c466a7cd6a79a8a61b8872700d39c8d947dd838d8cef678417"
+  },
+  "nodeGroups": [],
+  "id": "iAQ8bNMZdCvD35eq",
+  "tags": []
+}

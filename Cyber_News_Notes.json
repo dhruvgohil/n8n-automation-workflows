@@ -1,0 +1,451 @@
+{
+  "name": "Cyber_News_Notes",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7da92fc8-b34f-458b-a181-26e7e5cc2d8b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { url: \"https://openai.com/blog/rss.xml\" } },\n  { json: { url: \"https://deepmind.google/blog/rss.xml\" } },\n  { json: { url: \"https://www.microsoft.com/en-us/research/feed/\" } },\n  { json: { url: \"https://huggingface.co/blog/feed.xml\" } },\n  { json: { url: \"https://machinelearningmastery.com/feed/\" } },\n  { json: { url: \"https://bair.berkeley.edu/blog/feed.xml\" } },\n  { json: { url: \"https://blogs.nvidia.com/feed/\" } },\n  { json: { url: \"https://aws.amazon.com/blogs/machine-learning/feed/\" } },\n  { json: { url: \"https://techcrunch.com/category/artificial-intelligence/feed/\" } },\n  { json: { url: \"https://www.theverge.com/rss/index.xml\" } },\n  { json: { url: \"https://www.wired.com/feed/rss\" } },\n  { json: { url: \"https://venturebeat.com/category/ai/feed/\" } },\n  { json: { url: \"https://www.technologyreview.com/topic/artificial-intelligence/feed/\" } },\n  { json: { url: \"https://www.marktechpost.com/feed/\" } },\n  { json: { url: \"https://towardsdatascience.com/feed\" } },\n  { json: { url: \"https://www.kdnuggets.com/feed\" } },\n  { json: { url: \"https://www.artificialintelligence-news.com/feed/\" } },\n  { json: { url: \"https://www.bleepingcomputer.com/feed/\" } },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7882d973-9814-4d3c-82bc-03b98c9f2be2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "2793c950-1ce7-4e1a-8963-500a460b5c6e",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "818d5370-554e-4c90-a364-4f202c1ae427",
+              "leftValue": "={{ $json.pubDate }}",
+              "rightValue": "={{ $today.minus({days: 1}) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        0
+      ],
+      "id": "c0292f52-e3c8-4544-8385-85227aaf13c7",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title: {{ $json.title }}\nContent: {{ $json.content }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are a twitter post expert and you post twitter posts regarding AI related news. Read all the received news and generate very interesting twitter post via creatively crafting below data.\n\n## Output format\n- \"summary\": A dense 2-3 sentence summary.\n- \"key_points\": A bulleted list of actionable takeaways (e.g., commands, tools, specs).\n- \"importance_score\": An integer from 1 to 10 based on industry impact."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "30b9fed7-6908-4034-8be8-1ed62dcb26ff",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "rafw007/gemma4-e4b-claude-coder:latest",
+        "options": {
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        224
+      ],
+      "id": "5b55e09b-c02f-4027-b798-350d00b44d58",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        848,
+        0
+      ],
+      "id": "54d01ea0-4168-43d6-badf-3b4e629c8c2e",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the AI's string response into a real JSON object\n    const aiData = JSON.parse(item.json.output);\n    \n    // 2. Extract the specific fields and attach them directly to the n8n item\n    results.push({\n      json: {\n        category: aiData.category,\n        summary: aiData.summary,\n        key_points: aiData.key_points,\n        importance_score: aiData.importance_score,\n        \n        // It is highly recommended to keep the original title and link \n        // so you don't lose them for the next steps!\n        title: item.json.title,\n        link: item.json.link\n      }\n    });\n\n  } catch (error) {\n    // 3. Fallback: If the AI hallucinates bad JSON, catch the error \n    // so the node doesn't crash for the rest of the good articles.\n    results.push({\n      json: {\n        error: \"Failed to parse AI output\",\n        details: error.message,\n        raw_output: item.json.output\n      }\n    });\n  }\n}\n\n// 4. Return the new list of neatly separated items\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        0
+      ],
+      "id": "0070aa9d-4891-4351-b2c5-b40e61730659",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "importance_score",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        0
+      ],
+      "id": "3db5c0a4-d2c1-4ef0-826f-a0f995550de9",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "text": "=<b>Summary:</b>\n{{ $json.summary }}\n\n<b>Key Points:</b>\n{{ $json.key_points.join('\\n• ') }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        0
+      ],
+      "id": "7394a9f6-2700-46cc-85bf-2ce3c07a3bd4",
+      "name": "Send a text message",
+      "webhookId": "48d00e02-f457-4fb1-9ff5-fbcec124dd9a"
+    },
+    {
+      "parameters": {
+        "query": "AI Agent",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavily",
+      "typeVersion": 1,
+      "position": [
+        208,
+        272
+      ],
+      "id": "0430d740-fd53-4b3e-be26-2d4cfe20cc2c",
+      "name": "Search",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        272
+      ],
+      "id": "89cf76ab-43d6-406c-b34a-a6c6657158f2",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.results }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are an expert newsletter planner. You will receive articles from the past week. Your job is to come up with a creative and fun title as well as the main topics for this newsletter.\n\n## Instructions\nThe newsletter should flow nicely, feel informative, and holistic. The topics should be 3-5 words."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        272
+      ],
+      "id": "34ce364a-1bcb-41bb-a7a5-7ea7933bd196",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "rafw007/gemma4-e4b-claude-coder:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        416,
+        480
+      ],
+      "id": "c2eb51c8-9c98-495b-a642-ff45fedbefcf",
+      "name": "Ollama Chat Model1"
+    }
+  ],
+  "pinData": {
+    "Search": [
+      {
+        "json": {
+          "query": "AI Agent",
+          "follow_up_questions": null,
+          "answer": null,
+          "images": [],
+          "results": [
+            {
+              "url": "https://aws.amazon.com/what-is/ai-agents",
+              "title": "What are AI Agents?- Agents in Artificial Intelligence Explained - AWS",
+              "content": "# What are AI Agents? An artificial intelligence (AI) agent is a software program that can interact with its environment, collect data, and use that data to perform self-directed tasks that meet predetermined goals. Humans set goals, but an AI agent independently chooses the best actions it needs to perform to achieve those goals. For example, consider a contact center AI agent that wants to resolve customer queries. The agent will automatically ask the customer different questions, look up information in internal documents, and respond with a solution. Based on the customer responses, it determines if it can resolve the query itself or pass it on to a human. Multiple AI agents can collaborate to automate complex workflows and can also be used in agentic ai systems. An orchestrator agent coordinates the activities of different specialist agents to complete larger, more complex tasks. ## What are the key principles that define AI agents? AI agents can work with other agents or human agents to achieve shared goals.",
+              "score": 0.8839694,
+              "raw_content": null
+            },
+            {
+              "url": "https://www.ibm.com/think/topics/ai-agents",
+              "title": "What Are AI Agents? | IBM",
+              "content": "*   [Welcome](https://www.ibm.com/think/ai-agents#605511093). *   [Overview](https://www.ibm.com/think/topics/ai-agents#7281535). *   [What is agentic AI?](https://www.ibm.com/think/topics/agentic-ai#2095054954). *   [Overview](https://www.ibm.com/think/topics/ai-agent-development#1083937704). *   [Building AI agents](https://www.ibm.com/think/topics/how-to-build-an-ai-agent#1083937709). *   [Evolution of AI agents](https://www.ibm.com/think/topics/evolution-of-ai-agents#7281540). *   [Overview](https://www.ibm.com/think/topics/ai-agent-types#72820454). *   [Overview](https://www.ibm.com/think/topics/components-of-ai-agents#498277090). *   [Communication](https://www.ibm.com/think/topics/ai-agent-communication#498277088). *   [Learning](https://www.ibm.com/think/topics/ai-agent-learning#498277087). *   [Memory](https://www.ibm.com/think/topics/ai-agent-memory#498277086). *   [Perception](https://www.ibm.com/think/topics/ai-agent-perception#498277085). *   [Planning](https://www.ibm.com/think/topics/ai-agent-planning#498277084). *   [What is agent orchestration?](https://www.ibm.com/think/topics/ai-agent-orchestration#228874317). *   [Hierarchical AI agents](https://www.ibm.com/think/topics/hierarchical-ai-agents#1003835712). *   [Overview](https://www.ibm.com/think/topics/ai-agent-protocols#1509394340). *   [What is agentic orchestration?](https://www.ibm.com/think/topics/ai-agent-orchestration#1181250928). *   [Overview](https://www.ibm.com/think/insights/top-ai-agent-frameworks#1268897081). *   [Overview](https://www.ibm.com/think/insights/ai-agent-governance#763338456). *   [What is AI agent evaluation?](https://www.ibm.com/think/topics/ai-agent-evaluation#236418481). *   [AI agent management](https://www.ibm.com/think/topics/ai-agent-management#763338459). *   [AI agent security](https://www.ibm.com/think/topics/ai-agent-security#763338461). *   [AI agent sprawl](https://www.ibm.com/think/topics/ai-agent-sprawl#763338462). *   [Overview](https://www.ibm.com/think/topics/ai-agent-use-cases#1580786329). *   [Customer service](https://www.ibm.com/think/topics/ai-agents-in-customer-service#1580786327). *   [Finance](https://www.ibm.com/think/topics/ai-agents-in-finance#1580786326). *   [Healthcare](https://www.ibm.com/think/topics/ai-agents-healthcare#1580786325). *   [Human resources](https://www.ibm.com/think/topics/ai-agents-in-human-resources#1580786324). *   [Manufacturing](https://www.ibm.com/think/topics/agentic-ai-manufacturing#1580786323). *   [Marketing](https://www.ibm.com/think/topics/ai-agents-in-marketing#1580786322). *   [Procurement](https://www.ibm.com/think/topics/ai-agents-in-procurement#1580786321). *   [RevOps](https://www.ibm.com/think/topics/ai-agents-revops#1580786320). *   [Sales](https://www.ibm.com/think/topics/ai-agents-in-sales#1759735864). *   [Supply chain](https://www.ibm.com/think/topics/ai-agents-supply-chain#1759735863). [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). *   The team of developers that design and train the [agentic AI](https://www.ibm.com/think/topics/agentic-ai) system. [](https://www.ibm.com/think/topics/ai-agents). [Learn more](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). Simple reflex agents are the simplest agent form that grounds actions on [perception](https://www.ibm.com/think/topics/ai-agent-perception). If there is a natural disaster,AI agents can use[deep learning](https://www.ibm.com/think/topics/deep-learning)algorithms to retrieve the information of users on social media sites that need rescue. [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents). [](https://www.ibm.com/think/topics/ai-agents) Related solutions. [](https://www.ibm.com/think/topics/ai-agents)Take the next step.",
+              "score": 0.8409005,
+              "raw_content": null
+            },
+            {
+              "url": "https://github.com/resources/articles/what-are-ai-agents",
+              "title": "What are AI agents? - GitHub",
+              "content": "[Skip to content](https://github.com/resources/articles/what-are-ai-agents#start-of-content). Unlike [other AI models](https://github.com/resources/articles/what-are-generative-ai-models) that require constant human input, intelligent agents can initiate actions, make decisions based on predefined goals, and adapt to new information in real time. This ability to operate independently makes intelligent agents highly valuable in complex, dynamic environments such as [software development](https://github.com/resources/articles/ai-in-software-development). Working together makes AI agents even more effective in [software development](https://github.com/resources/articles/ai-in-software-development) and other industries. A coding agent is like an [AI code assistant](https://github.com/features/copilot). One common application is [code security automation](https://github.com/features/security): AI agents automate the detection and remediation of security issues in code, helping to reduce the risk of vulnerabilities and improve the overall security posture of software applications. 5.   [AI agents in software development](https://github.com/resources/articles/what-are-ai-agents#ai-agents-in-software-development). ### [What is Agentic AI?](https://github.com/resources/articles/what-is-agentic-ai). An [AI agent](https://github.com/features/copilot) is an autonomous system designed to perform tasks, make decisions, and adapt based on data and user feedback. *   [English](https://github.com/resources/articles/what-are-ai-agents). *   [Português (Brasil)](https://github.com/resources/articles/what-are-ai-agents). *   [Español (América Latina)](https://github.com/resources/articles/what-are-ai-agents). *   [日本語](https://github.com/resources/articles/what-are-ai-agents). *   [한국어](https://github.com/resources/articles/what-are-ai-agents). *   [Français](https://github.com/resources/articles/what-are-ai-agents). *   [Deutsch](https://github.com/resources/articles/what-are-ai-agents).",
+              "score": 0.80698997,
+              "raw_content": null
+            },
+            {
+              "url": "https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained",
+              "title": "Agentic AI, explained | MIT Sloan",
+              "content": "[Skip to main content](https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained#main-content). ![Image 5: An AI agent multitasks various screens featuring charts, graphs, and travel arrangements](https://mitsloan.mit.edu/sites/default/files/styles/article_header_desktop/public/2026-02/agentic-ai-dobi.jpg.webp?h=7691f918&itok=VpvW7VKx). *   [](https://www.facebook.com/dialog/share?app_id=197866067790470&display=popup&href=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&redirect_uri=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&quote=Agentic%20AI,%20explained \"Share on Facebook\"). *   [](https://twitter.com/intent/tweet?url=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&text=Agentic%20AI,%20explained&via=MITSloan \"Share on X\"). *   [](https://www.linkedin.com/shareArticle?mini=true&url=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&title=Agentic%20AI,%20explained&summary=Agentic%20AI,%20explained&source= \"Share on LinkedIn\"). He describes the collective understanding of the societal implications of agentic AI on a larger scale as[nascent, if not nonexistent](https://mitsloan.mit.edu/ideas-made-to-matter/4-new-studies-about-agentic-ai-mit-initiative-digital-economy). MIT Sloan professor Kate Kellogg and her co-researchers[further explain](https://mitsloan.mit.edu/shared/ods/documents?PublicationDocumentID=10789) in a 2025 paper that AI agents enhance large language models and similar generalist AI models by enabling them to automate complex procedures. *   [](https://www.facebook.com/dialog/share?app_id=197866067790470&display=popup&href=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&redirect_uri=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&quote=It%E2%80%99s%20an%20imperative%20that%20every%20organization%20have%20a%20strategy%20to%20deploy%20and%20utilize%20AI%20agents%20in%20customer-facing%20and%20internal%20use%20cases. *   [](https://twitter.com/intent/tweet?url=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&text=It%E2%80%99s%20an%20imperative%20that%20every%20organization%20have%20a%20strategy%20to%20deploy%20and%20utilize%20AI%20agents%20in%20customer-facing%20and%20internal%20use%20cases.&via=MITSloan \"Share on X\"). *   [](https://www.linkedin.com/shareArticle?mini=true&url=https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained&title=Agentic%20AI,%20explained&summary=It%E2%80%99s%20an%20imperative%20that%20every%20organization%20have%20a%20strategy%20to%20deploy%20and%20utilize%20AI%20agents%20in%20customer-facing%20and%20internal%20use%20cases.&source= \"Share on LinkedIn\"). *   [](mailto:?subject=Agentic%20AI%2C%20explained&body=It%E2%80%99s%20an%20imperative%20that%20every%20organization%20have%20a%20strategy%20to%20deploy%20and%20utilize%20AI%20agents%20in%20customer-facing%20and%20internal%20use%20cases.%20https%3A%2F%2Fmitsloan.mit.edu%2Fideas-made-to-matter%2Fagentic-ai-explained \"Mail link\"). Kellogg and colleagues’ 2025 research paper[describes the use of an AI agent](https://mitsloan.mit.edu/shared/ods/documents?PublicationDocumentID=10789) to detect adverse events among cancer patients based on clinical notes. **Read** about[four recent studies about agentic AI](https://mitsloan.mit.edu/ideas-made-to-matter/4-new-studies-about-agentic-ai-mit-initiative-digital-economy) from the MIT Initiative on the Digital Economy. 2.   “[Agentic AI: Nine Essential Questions](https://sloanreview.mit.edu/article/agentic-ai-nine-essential-questions/)”. **Read** the research briefing“[Business Models in the Agentic AI Era](https://cisr.mit.edu/publication/2025_1001_BizModelsAIEra_WeillSebastianWoernerBenedict),” from the MIT Center for Information Systems Research.",
+              "score": 0.80405265,
+              "raw_content": null
+            },
+            {
+              "url": "https://cloud.google.com/discover/what-are-ai-agents",
+              "title": "What are AI agents? Definition, examples, and types | Google Cloud",
+              "content": "*   [What is an AI agent?](https://cloud.google.com/discover/what-are-ai-agents#what-is-an-ai-agent). *   [How do AI agents work?](https://cloud.google.com/discover/what-are-ai-agents#how-do-ai-agents-work). *   [Additional resources](https://cloud.google.com/discover/what-are-ai-agents#additional-resources). *   [Take the next step](https://cloud.google.com/discover/what-are-ai-agents#take-the-next-step). Demo Gemini Enterprise Agent Platform[](https://console.cloud.google.com/vertex-ai/studio/freeform). [See all products](https://cloud.google.com/products/). *   [AI and Agents Get enterprise-ready AI.](https://cloud.google.com/ai). *   [Industry Solutions](https://cloud.google.com/#). *   [Databases](https://cloud.google.com/#). *   [Infrastructure](https://cloud.google.com/#). *   [Productivity and Collaboration](https://cloud.google.com/#). *   [Security](https://cloud.google.com/#). See all solutions[](https://cloud.google.com/solutions). *   [Agentic SOC Delivering better security outcomes with AI agents.](https://cloud.google.com/solutions/agentic-soc). *   [Featured Products](https://cloud.google.com/#). *   [AI and Machine Learning](https://cloud.google.com/#). *   [Compute](https://cloud.google.com/#). *   [Containers](https://cloud.google.com/#). *   [Databases](https://cloud.google.com/#). *   [Management Tools](https://cloud.google.com/#). *   [Migration](https://cloud.google.com/#). *   [Networking](https://cloud.google.com/#). *   [Operations](https://cloud.google.com/#). *   [Productivity and Collaboration](https://cloud.google.com/#). *   [Serverless](https://cloud.google.com/#). *   [Storage](https://cloud.google.com/#). *   [Web3](https://cloud.google.com/#). *   [Knowledge Catalog Always-on catalog for AI that provides universal context for agents.](https://cloud.google.com/products/knowledge-catalog). *   [Solutions](https://cloud.google.com/solutions). *   [Products](https://cloud.google.com/products). *   [AI and Agents](https://cloud.google.com/ai). *   [See all solutions](https://cloud.google.com/solutions). *   [Artificial Intelligence](https://cloud.google.com/solutions/ai). *   [Data Analytics](https://cloud.google.com/solutions/data-analytics-and-ai). *   [Agentic SOC](https://cloud.google.com/solutions/agentic-soc). *   [Agent Platform](https://cloud.google.com/products/gemini-enterprise-agent-platform). *   [AI and Machine Learning](https://cloud.google.com/products/ai). *   [Data Analytics](https://cloud.google.com/solutions/data-analytics-and-ai). *   [See all products](https://cloud.google.com/products). *   [Smart analytics](https://cloud.google.com/solutions/data-analytics-and-ai). *   [Artificial Intelligence](https://cloud.google.com/solutions/ai). *   [See all solutions](https://cloud.google.com/solutions).",
+              "score": 0.7701369,
+              "raw_content": null
+            }
+          ],
+          "response_time": 0.85,
+          "request_id": "fb96d467-de15-46b1-bedb-a4be7d98d714"
+        }
+      }
+    ],
+    "AI Agent1": [
+      {
+        "json": {
+          "output": "## Newsletter Title Idea\n\n🤖 **The Autonomous Workflow: Mastering Agentic AI**\n\n***\n\n## Main Topics for the Week\n\n(These topics provide a logical flow from definition to complexity, keeping the tone informative and expert.)\n\n1. **Beyond Chatbots: Defining Agents** (Focuses on autonomous decision-making vs. simple prompting/Q&A)\n2. **Memory, Planning, and Action Cycles** (Covers the technical components like perception, memory retrieval, goal setting, and task execution)\n3. **Orchestration and Collaboration Power** (Addresses how multiple agents work together to solve large, complex problems across different systems—a key concept mentioned by AWS/IBM)\n4. **Transforming Key Industries Autonomously** (Covers the vast use cases: healthcare, finance, software development, etc.)"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0f479b00-7899-4147-b500-f4d6953c685c",
+  "meta": {
+    "instanceId": "d254b8dd4fc674c466a7cd6a79a8a61b8872700d39c8d947dd838d8cef678417"
+  },
+  "nodeGroups": [],
+  "id": "subZ9e3xwvX2f6zP",
+  "tags": []
+}

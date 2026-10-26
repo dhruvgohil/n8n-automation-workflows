@@ -1,0 +1,849 @@
+{
+  "name": "Youtube_Video_Post",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        240
+      ],
+      "id": "f81ca906-e23e-4c06-8679-760ab88b8c68",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        240
+      ],
+      "id": "c1d94bc1-5135-4b46-aea7-b97b59b3ee43",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Get row(s) in sheet').item.json['Video URL'] }}",
+          "mode": "url"
+        },
+        "options": {
+          "binaryPropertyName": "Video_File"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        752,
+        464
+      ],
+      "id": "1de9c95b-15e0-49c3-97f4-7ea3afca3258",
+      "name": "Download file",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Shorts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10cYiQzNNK5QKOO7DgZxIl8wpiRAUR0vVdzZS5VtKFHU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Video ID": "={{ $json['Video ID'] }}",
+            "Status": "Processing"
+          },
+          "matchingColumns": [
+            "Video ID"
+          ],
+          "schema": [
+            {
+              "id": "Video ID",
+              "displayName": "Video ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tags",
+              "displayName": "Tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Video URL",
+              "displayName": "Video URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "YT Shorts",
+              "displayName": "YT Shorts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "IG Reels",
+              "displayName": "IG Reels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Twitter",
+              "displayName": "Twitter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Scheduled Time",
+              "displayName": "Scheduled Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Published Links",
+              "displayName": "Published Links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Error Logs",
+              "displayName": "Error Logs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        752,
+        0
+      ],
+      "id": "ebeadf99-09c6-40e1-b336-0d02e53769eb",
+      "name": "Update row in sheet"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "322c755c-cc87-4490-9c8d-816401f34169",
+              "leftValue": "={{ $json['Scheduled Time'] }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        240
+      ],
+      "id": "ff87e3d8-7f15-4870-b8fc-3190e140b21b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $('Get row(s) in sheet').item.json.Title }}",
+        "regionCode": "IN",
+        "categoryId": "=24",
+        "binaryProperty": "Video_File",
+        "options": {
+          "defaultLanguage": "es-US",
+          "description": "={{ $json.Description }}",
+          "embeddable": false,
+          "license": "youtube",
+          "notifySubscribers": false,
+          "privacyStatus": "private",
+          "publicStatsViewable": true,
+          "publishAt": "={{ $json['Scheduled Time'] }}",
+          "selfDeclaredMadeForKids": false,
+          "tags": "={{ $('Get row(s) in sheet').item.json.Tags }}"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        224
+      ],
+      "id": "85b2bfa9-0db0-4c0c-a168-9a974b9443c0",
+      "name": "Upload a video"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Get row(s) in sheet').item.json['Video Thumbnail'] }}",
+          "mode": "url"
+        },
+        "options": {
+          "binaryPropertyName": "Thumbnail_File"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1328,
+        448
+      ],
+      "id": "7e34cf84-6f45-482f-b571-ec2ec06b13ce",
+      "name": "Download file1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Shorts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10cYiQzNNK5QKOO7DgZxIl8wpiRAUR0vVdzZS5VtKFHU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Status": "Published",
+            "Published ID": "=https://youtube.com/watch?v={{ $json.uploadId }}",
+            "YT Shorts": "true",
+            "Video ID": "={{ $('Get row(s) in sheet').item.json['Video ID'] }}"
+          },
+          "matchingColumns": [
+            "Video ID"
+          ],
+          "schema": [
+            {
+              "id": "Video ID",
+              "displayName": "Video ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tags",
+              "displayName": "Tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Video Thumbnail",
+              "displayName": "Video Thumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Video URL",
+              "displayName": "Video URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PlayList ID",
+              "displayName": "PlayList ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "YT Shorts",
+              "displayName": "YT Shorts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "IG Reels",
+              "displayName": "IG Reels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Twitter",
+              "displayName": "Twitter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Scheduled Time",
+              "displayName": "Scheduled Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Published ID",
+              "displayName": "Published ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Error Logs",
+              "displayName": "Error Logs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1328,
+        0
+      ],
+      "id": "c3f4702d-5c58-4e28-8dc8-a64f2529c085",
+      "name": "Update row in sheet1"
+    },
+    {
+      "parameters": {
+        "resource": "playlistItem",
+        "playlistId": "={{ $('Get row(s) in sheet').item.json['PlayList ID'] }}",
+        "videoId": "={{ $('Upload a video').item.json.uploadId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        224
+      ],
+      "id": "01d2361e-02af-4cca-b218-3dbfc7d798d8",
+      "name": "Add a playlist item"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/thumbnails/set",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "videoId",
+              "value": "={{ $('Upload a video').item.json.uploadId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "Thumbnail_File",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1648,
+        448
+      ],
+      "id": "dbf870f1-e48a-48c2-b332-c8f35f21058f",
+      "name": "HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json['Video URL'] }}",
+        "options": {
+          "fileExtension": "mp4",
+          "fileName": "First_Video",
+          "dataPropertyName": "Video_File"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        224
+      ],
+      "id": "f69534f5-2f8d-492c-953d-6fe43a724357",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Get row(s) in sheet').item.json['Video Thumbnail'] }}",
+        "options": {
+          "fileExtension": "png",
+          "fileName": "First_Thumbnail",
+          "dataPropertyName": "Thumbnail_File"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        224
+      ],
+      "id": "293f8a1d-4c81-401c-80f6-e23c616b0dfc",
+      "name": "Read/Write Files from Disk1"
+    }
+  ],
+  "pinData": {
+    "Add a playlist item": [
+      {
+        "json": {
+          "kind": "youtube#playlistItem",
+          "etag": "yIZGct6_u9vekDWrcFA_Fbr5lic",
+          "id": "UExMa0JiSXYxblhoZjB5Q0Nia3FJQWNrWXJ0cnZXeFNBcC4wNEU1MTI4NkZEMzVBN0JF",
+          "snippet": {
+            "publishedAt": "2026-06-23T16:47:47Z",
+            "channelId": "UCjxUIMFLk0riVPOX7lVlmEw",
+            "title": "My first post uploaded via n8n workflow",
+            "description": "",
+            "thumbnails": {
+              "default": {
+                "url": "https://i9.ytimg.com/vi/jpJ2VCH653s/default.jpg?sqp=CIzw6tEG&rs=AOn4CLA7HAa2YHyoOjHvVH6uwTtOdrfhag",
+                "width": 120,
+                "height": 90
+              },
+              "medium": {
+                "url": "https://i9.ytimg.com/vi/jpJ2VCH653s/mqdefault.jpg?sqp=CIzw6tEG&rs=AOn4CLBQKLoOmzgYmnMynYxFQsmXqI1PWg",
+                "width": 320,
+                "height": 180
+              },
+              "high": {
+                "url": "https://i9.ytimg.com/vi/jpJ2VCH653s/hqdefault.jpg?sqp=CIzw6tEG&rs=AOn4CLBUZuKTQ1-9IEGh-pmk8W6Jc5-mNA",
+                "width": 480,
+                "height": 360
+              }
+            },
+            "channelTitle": "Joker The Fool",
+            "playlistId": "PLLkBbIv1nXhf0yCCbkqIAckYrtrvWxSAp",
+            "position": 46,
+            "resourceId": {
+              "kind": "youtube#video",
+              "videoId": "jpJ2VCH653s"
+            },
+            "videoOwnerChannelTitle": "Joker The Fool",
+            "videoOwnerChannelId": "UCjxUIMFLk0riVPOX7lVlmEw"
+          },
+          "contentDetails": {
+            "videoId": "jpJ2VCH653s",
+            "videoPublishedAt": "2026-06-23T16:47:18Z"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "kind": "youtube#playlistItem",
+          "etag": "KvDnL3zNdGl1pab6J1pcQ0GR2hw",
+          "id": "UExMa0JiSXYxblhoZk9PeHJOcTlyUkNYZ0hiUS1Ta3g5Mi41MzJCQjBCNDIyRkJDN0VD",
+          "snippet": {
+            "publishedAt": "2026-06-23T16:47:48Z",
+            "channelId": "UCjxUIMFLk0riVPOX7lVlmEw",
+            "title": "My second post uploaded via n8n workflow",
+            "description": "",
+            "thumbnails": {
+              "default": {
+                "url": "https://i9.ytimg.com/vi/bRdfSh6goe8/default.jpg?sqp=CIzw6tEG&rs=AOn4CLAlxmqd5GBCsiKTLZTvr5x759p9hA",
+                "width": 120,
+                "height": 90
+              },
+              "medium": {
+                "url": "https://i9.ytimg.com/vi/bRdfSh6goe8/mqdefault.jpg?sqp=CIzw6tEG&rs=AOn4CLDpR4aztw2yQgJo58IdbmgUahCbnA",
+                "width": 320,
+                "height": 180
+              },
+              "high": {
+                "url": "https://i9.ytimg.com/vi/bRdfSh6goe8/hqdefault.jpg?sqp=CIzw6tEG&rs=AOn4CLC6WR-KND4Ne-QntGDdVu9v1RlSRw",
+                "width": 480,
+                "height": 360
+              }
+            },
+            "channelTitle": "Joker The Fool",
+            "playlistId": "PLLkBbIv1nXhfOOxrNq9rRCXgHbQ-Skx92",
+            "position": 5,
+            "resourceId": {
+              "kind": "youtube#video",
+              "videoId": "bRdfSh6goe8"
+            },
+            "videoOwnerChannelTitle": "Joker The Fool",
+            "videoOwnerChannelId": "UCjxUIMFLk0riVPOX7lVlmEw"
+          },
+          "contentDetails": {
+            "videoId": "bRdfSh6goe8",
+            "videoPublishedAt": "2026-06-23T16:47:30Z"
+          }
+        },
+        "pairedItem": {
+          "item": 1
+        }
+      }
+    ],
+    "Upload a video": [
+      {
+        "json": {
+          "uploadId": "jpJ2VCH653s"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "uploadId": "bRdfSh6goe8"
+        },
+        "pairedItem": {
+          "item": 1
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add a playlist item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Download file1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add a playlist item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "706f40f4-5777-462e-bdf5-764fda121ded",
+  "meta": {
+    "instanceId": "d254b8dd4fc674c466a7cd6a79a8a61b8872700d39c8d947dd838d8cef678417"
+  },
+  "nodeGroups": [],
+  "id": "OYaDXlRdXA6Yk3Qb",
+  "tags": []
+}

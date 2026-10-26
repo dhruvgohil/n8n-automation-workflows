@@ -1,0 +1,61 @@
+{
+  "name": "n8n + claude code",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "20bfbf4b-e384-4746-a470-32d148b4fc69",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "command": "/home/kali/.local/bin/hermes -z \"Hi\""
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "b7419af3-5315-4b7e-80fd-3200ca52329c",
+      "name": "AI_Terminal",
+      "credentials": {
+        "sshPassword": {
+          "id": "23LeZjh31GeNNGjP",
+          "name": "AI_TERMINAL"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI_Terminal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1b8af118-a93d-4da5-9839-16e60d6c8a6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "814e23d4b899085744a6aa72aa7a6d9fc9c9f91ea546628ba4ca7a307d715ebb"
+  },
+  "id": "CTFl5F8Rs1Lmf0Yn",
+  "tags": []
+}
